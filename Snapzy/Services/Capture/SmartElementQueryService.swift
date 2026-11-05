@@ -14,6 +14,7 @@ import AppKit
 import ApplicationServices
 import Combine
 import Foundation
+import PermissionGuide
 
 /// Resolves the AX element under the cursor and publishes its rect.
 ///
@@ -125,8 +126,7 @@ final class SmartElementQueryService {
   @discardableResult
   func ensureAccessibilityPermission() -> Bool {
     if AXIsProcessTrusted() { return true }
-    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-    _ = AXIsProcessTrustedWithOptions(options)
+    PermissionGuidePresenter.present(.accessibility)
     DiagnosticLogger.shared.log(
       .warning,
       .capture,

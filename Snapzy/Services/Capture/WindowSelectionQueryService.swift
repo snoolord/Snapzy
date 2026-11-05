@@ -345,6 +345,7 @@ enum WindowSelectionQueryService {
         )
       }
 
+      try await ScreenCaptureManager.shared.requireAccessOrShowGuide()
       let refreshedContent = try await SCShareableContent.current
       return refreshedContent.windows.first { $0.windowID == windowID && $0.isOnScreen }
     } catch {
@@ -389,6 +390,7 @@ enum WindowSelectionQueryService {
     if let prefetchedContentTask {
       return try await prefetchedContentTask.value
     }
+    try await ScreenCaptureManager.shared.requireAccessOrShowGuide()
     return try await SCShareableContent.current
   }
 
