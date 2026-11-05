@@ -344,9 +344,17 @@ final class ScreenCaptureManager: ObservableObject {
 
   /// Open Screen Recording settings with the PermissionGuide drag-to-grant panel.
   func openScreenRecordingPreferences() {
-    PermissionGuidePresenter.present(.screenRecording) { [weak self] _ in
-      Task { await self?.checkPermission() }
-    }
+    // CGPreflightScreenCaptureAccess can stay stale in-process after a grant, so the
+    // guide also polls checkPermission(), which falls back to the child-process probe.
+    PermissionGuidePresenter.present(
+      .screenRecording,
+      probe: { [weak self] in
+        await self?.checkPermission()
+        return self?.hasPermission ?? false
+      },
+      onFinish: { [weak self] _ in
+        Task { await self?.checkPermission() }
+      })
   }
 
   /// Start loading shareable content before the user finishes a selection so
