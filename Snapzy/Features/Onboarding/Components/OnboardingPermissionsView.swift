@@ -266,8 +266,8 @@ struct PermissionsView: View {
       return
     }
 
-    PermissionGuide.present(.accessibility) { _ in
-      Task { @MainActor in checkAccessibilityPermission() }
+    PermissionGuidePresenter.present(.accessibility) { _ in
+      checkAccessibilityPermission()
     }
   }
 

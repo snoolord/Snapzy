@@ -207,7 +207,7 @@ struct SnapzyOnboardingPermissionsView: View {
       accessibilityGranted = true
       return
     }
-    PermissionGuide.present(.accessibility) { _ in
+    PermissionGuidePresenter.present(.accessibility) { _ in
       Task { await refreshPermissions() }
     }
   }

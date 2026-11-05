@@ -580,7 +580,9 @@ final class ScrollingCaptureCoordinator {
       return true
     }
 
-    PermissionGuide.present(.accessibility) { _ in }
+    PermissionGuidePresenter.present(.accessibility) { [weak self] granted in
+      if granted { self?.startAutoScrolling() }
+    }
 
     sessionModel?.setStatus(
       L10n.ScrollingCaptureStatus.autoScrollNeedsAccessibility,

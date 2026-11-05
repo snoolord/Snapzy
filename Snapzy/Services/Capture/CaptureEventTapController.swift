@@ -186,7 +186,7 @@ final class CaptureEventTapController {
   @discardableResult
   func ensureAccessibilityPermission() -> Bool {
     if AXIsProcessTrusted() { return true }
-    PermissionGuide.present(.accessibility) { _ in }
+    PermissionGuidePresenter.present(.accessibility)
     DiagnosticLogger.shared.log(
       .warning,
       .capture,

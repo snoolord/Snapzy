@@ -344,7 +344,7 @@ final class ScreenCaptureManager: ObservableObject {
 
   /// Open Screen Recording settings with the PermissionGuide drag-to-grant panel.
   func openScreenRecordingPreferences() {
-    PermissionGuide.present(.screenRecording) { [weak self] _ in
+    PermissionGuidePresenter.present(.screenRecording) { [weak self] _ in
       Task { await self?.checkPermission() }
     }
   }
