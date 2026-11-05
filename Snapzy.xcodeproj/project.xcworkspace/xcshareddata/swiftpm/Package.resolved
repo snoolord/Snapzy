@@ -1,5 +1,5 @@
 {
-  "originHash" : "4c2b6ddcb08015b956de0b0fb222e6551ec0185708ef43e66fc80d8999c1dfd4",
+  "originHash" : "cc2889fde3c040877cddb8ba89d600d8c34288356283a78bf08ea87a84d38e91",
   "pins" : [
     {
       "identity" : "grdb.swift",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "0d60654eeefd5d7d2bef3835804892c40225e8b2",
         "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "permission-guide",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/builtby-win/permission-guide",
+      "state" : {
+        "branch" : "main",
+        "revision" : "6e199087301032177f6914b05aa080b2e6bbe121"
       }
     },
     {

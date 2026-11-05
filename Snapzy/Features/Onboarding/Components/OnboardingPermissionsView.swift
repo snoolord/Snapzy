@@ -8,6 +8,7 @@
 import ApplicationServices
 import AVFoundation
 import SwiftUI
+import PermissionGuide
 
 struct PermissionsView: View {
   @ObservedObject var screenCaptureManager: ScreenCaptureManager
@@ -265,12 +266,9 @@ struct PermissionsView: View {
       return
     }
 
-    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-    _ = AXIsProcessTrustedWithOptions(options)
-
-    // Keep user on the correct settings page if macOS does not navigate there.
-    openSystemSettings(accessibilityURL)
-    checkAccessibilityPermission()
+    PermissionGuide.present(.accessibility) { _ in
+      Task { @MainActor in checkAccessibilityPermission() }
+    }
   }
 
   private func openSystemSettings(_ urlString: String) {

@@ -12,6 +12,7 @@
 
 import AppKit
 import Foundation
+import PermissionGuide
 
 /// Mouse button/drag activity observed by the capture event tap.
 enum CaptureButtonEvent: Equatable, Sendable {
@@ -185,8 +186,7 @@ final class CaptureEventTapController {
   @discardableResult
   func ensureAccessibilityPermission() -> Bool {
     if AXIsProcessTrusted() { return true }
-    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-    _ = AXIsProcessTrustedWithOptions(options)
+    PermissionGuide.present(.accessibility) { _ in }
     DiagnosticLogger.shared.log(
       .warning,
       .capture,

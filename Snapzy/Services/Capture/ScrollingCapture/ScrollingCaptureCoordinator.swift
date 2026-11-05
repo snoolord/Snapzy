@@ -12,6 +12,7 @@ import Foundation
 import ImageIO
 import ScreenCaptureKit
 import UniformTypeIdentifiers
+import PermissionGuide
 
 @MainActor
 final class ScrollingCaptureCoordinator {
@@ -579,10 +580,7 @@ final class ScrollingCaptureCoordinator {
       return true
     }
 
-    let options = [
-      kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true
-    ] as CFDictionary
-    _ = AXIsProcessTrustedWithOptions(options)
+    PermissionGuide.present(.accessibility) { _ in }
 
     sessionModel?.setStatus(
       L10n.ScrollingCaptureStatus.autoScrollNeedsAccessibility,

@@ -8,6 +8,7 @@
 import ApplicationServices
 import AVFoundation
 import SwiftUI
+import PermissionGuide
 
 struct SnapzyOnboardingPermissionsView: View {
   @ObservedObject var state: SnapzyOnboardingState
@@ -206,9 +207,9 @@ struct SnapzyOnboardingPermissionsView: View {
       accessibilityGranted = true
       return
     }
-    let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-    _ = AXIsProcessTrustedWithOptions(options)
-    Task { await refreshPermissions() }
+    PermissionGuide.present(.accessibility) { _ in
+      Task { await refreshPermissions() }
+    }
   }
 
   // MARK: - Probe Timer

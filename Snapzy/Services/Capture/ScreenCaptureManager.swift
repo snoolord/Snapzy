@@ -14,6 +14,7 @@ import Foundation
 import ImageIO
 import os.log
 import ScreenCaptureKit
+import PermissionGuide
 
 private let logger = Logger(subsystem: "Snapzy", category: "ScreenCaptureManager")
 typealias ShareableContentPrefetchTask = Task<SCShareableContent, Error>
@@ -272,9 +273,8 @@ final class ScreenCaptureManager: ObservableObject {
       }
 
       // Fallback: CGRequestScreenCaptureAccess opens System Settings on macOS 15+.
-      let granted = CGRequestScreenCaptureAccess()
-      if !granted {
-        openScreenRecordingPreferences()
+      PermissionGuide.present(.screenRecording) { [weak self] _ in
+        Task { await self?.checkPermission() }
       }
       await checkPermission()
       return hasPermission

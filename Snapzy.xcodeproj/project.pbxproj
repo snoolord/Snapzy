@@ -10,6 +10,7 @@
 		A31BF0A82F1CF69100902D12 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A31BF0A72F1CF69100902D12 /* Sparkle */; };
 		B42DE1A02FA1B90000WEBP01 /* WebP in Frameworks */ = {isa = PBXBuildFile; productRef = B42DE1A12FA1B90000WEBP01 /* WebP */; };
 		C73DB2A02FA3GRDB00GRDB01 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = C73DB2A12FA3GRDB00GRDB01 /* GRDB */; };
+		E51PG1012FB0000000PG0003 /* PermissionGuide in Frameworks */ = {isa = PBXBuildFile; productRef = E51PG1012FB0000000PG0002 /* PermissionGuide */; };
 		C11CL1012FB0000000CLI003 /* SnapzyCLIProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = C11CL1012FB0000000CLI002 /* SnapzyCLIProtocol */; };
 		C11CL1012FB0000000CLI016 /* SnapzyCLICore in Frameworks */ = {isa = PBXBuildFile; productRef = C11CL1012FB0000000CLI015 /* SnapzyCLICore */; };
 		C11CL1012FB0000000CLI01E /* snapzy in Embed Command Line Tool */ = {isa = PBXBuildFile; fileRef = C11CL1012FB0000000CLI010 /* snapzy */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -95,6 +96,7 @@
 				A31BF0A82F1CF69100902D12 /* Sparkle in Frameworks */,
 				B42DE1A02FA1B90000WEBP01 /* WebP in Frameworks */,
 				C73DB2A02FA3GRDB00GRDB01 /* GRDB in Frameworks */,
+				E51PG1012FB0000000PG0003 /* PermissionGuide in Frameworks */,
 				C11CL1012FB0000000CLI003 /* SnapzyCLIProtocol in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -164,6 +166,7 @@
 				A31BF0A72F1CF69100902D12 /* Sparkle */,
 				B42DE1A12FA1B90000WEBP01 /* WebP */,
 				C73DB2A12FA3GRDB00GRDB01 /* GRDB */,
+				E51PG1012FB0000000PG0002 /* PermissionGuide */,
 				C11CL1012FB0000000CLI002 /* SnapzyCLIProtocol */,
 			);
 			productName = Snapzy;
@@ -259,6 +262,7 @@
 				A31BF0A62F1CF69100902D12 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				B42DE19F2FA1B90000WEBP01 /* XCRemoteSwiftPackageReference "Swift-WebP" */,
 				C73DB19F2FA3GRDB00GRDB01 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+				E51PG1012FB0000000PG0001 /* XCRemoteSwiftPackageReference "permission-guide" */,
 				C11CL1012FB0000000CLI001 /* XCLocalSwiftPackageReference "Packages/SnapzyCLIKit" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -715,6 +719,14 @@
 				minimumVersion = 7.0.0;
 			};
 		};
+		E51PG1012FB0000000PG0001 /* XCRemoteSwiftPackageReference "permission-guide" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/builtby-win/permission-guide";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -732,6 +744,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C73DB19F2FA3GRDB00GRDB01 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
+		};
+		E51PG1012FB0000000PG0002 /* PermissionGuide */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E51PG1012FB0000000PG0001 /* XCRemoteSwiftPackageReference "permission-guide" */;
+			productName = PermissionGuide;
 		};
 		C11CL1012FB0000000CLI002 /* SnapzyCLIProtocol */ = {
 			isa = XCSwiftPackageProductDependency;
