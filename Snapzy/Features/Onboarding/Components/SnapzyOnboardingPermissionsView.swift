@@ -55,7 +55,7 @@ struct SnapzyOnboardingPermissionsView: View {
           actionTitle: L10n.Onboarding.permissionsScreenRecordingAction,
           onAction: {
             Task {
-              _ = await screenCaptureManager.requestPermission()
+              _ = await screenCaptureManager.requestPermission(explain: false)
               await refreshPermissions()
             }
           }
@@ -207,7 +207,7 @@ struct SnapzyOnboardingPermissionsView: View {
       accessibilityGranted = true
       return
     }
-    PermissionGuidePresenter.present(.accessibility) { _ in
+    PermissionGuidePresenter.present(.accessibility, explain: false) { _ in
       Task { await refreshPermissions() }
     }
   }

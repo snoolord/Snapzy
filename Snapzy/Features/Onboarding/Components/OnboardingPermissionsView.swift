@@ -64,7 +64,7 @@ struct PermissionsView: View {
               if case .grantedButUnavailableDueToAppIdentity = screenCaptureManager.permissionStatus {
                 await refreshPermissions()
               } else {
-                _ = await screenCaptureManager.requestPermission()
+                _ = await screenCaptureManager.requestPermission(explain: false)
               }
             }
           }
@@ -266,7 +266,7 @@ struct PermissionsView: View {
       return
     }
 
-    PermissionGuidePresenter.present(.accessibility) { _ in
+    PermissionGuidePresenter.present(.accessibility, explain: false) { _ in
       checkAccessibilityPermission()
     }
   }

@@ -17,6 +17,7 @@ enum PermissionGuidePresenter {
   static let timeout: Duration = .seconds(180)
   private static let probeInterval: Duration = .milliseconds(1500)
 
+  private static var isPrompting = false
   private static var watchers: [Task<Void, Never>] = []
   /// Set when the probe saw the grant before the package's own status check did.
   private static var probeGranted = false
@@ -29,9 +30,20 @@ enum PermissionGuidePresenter {
   /// is visible by any means the package cannot see (e.g. a child-process TCC probe).
   static func present(
     _ kind: PermissionKind,
+    explain: Bool = true,
     probe: (@MainActor () async -> Bool)? = nil,
     onFinish: @escaping @MainActor (Bool) -> Void = { _ in }
   ) {
+    if explain {
+      // Several enumeration paths can fire per hotkey press; only the first one prompts.
+      guard !isPrompting, watchers.isEmpty else { return }
+      isPrompting = true
+      defer { isPrompting = false }
+      guard confirmGrant(kind) else {
+        onFinish(false)
+        return
+      }
+    }
     stopWatchers()
     probeGranted = false
 
@@ -67,6 +79,25 @@ enum PermissionGuidePresenter {
           }
         })
     }
+  }
+
+  /// Snapzy's own heads-up before System Settings opens, so the guide panel isn't a surprise.
+  /// Not shown during onboarding, which already explains each permission.
+  private static func confirmGrant(_ kind: PermissionKind) -> Bool {
+    let (name, reason): (String, String) =
+      switch kind {
+      case .screenRecording: ("Screen Recording", "capture your screen")
+      case .accessibility: ("Accessibility", "detect windows and control scrolling")
+      case .inputMonitoring: ("Input Monitoring", "listen for your capture shortcuts")
+      }
+    let alert = NSAlert()
+    alert.messageText = "Snapzy needs \(name) permission"
+    alert.informativeText =
+      "Snapzy needs this to \(reason). Click Grant Permission to open System Settings, then drag Snapzy from the guide into the list and turn it on."
+    alert.addButton(withTitle: "Grant Permission")
+    alert.addButton(withTitle: "Not Now")
+    NSApp.activate(ignoringOtherApps: true)
+    return alert.runModal() == .alertFirstButtonReturn
   }
 
   private static func stopWatchers() {

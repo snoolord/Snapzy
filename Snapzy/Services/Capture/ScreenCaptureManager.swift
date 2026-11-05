@@ -237,46 +237,39 @@ final class ScreenCaptureManager: ObservableObject {
     updatePermissionStatus(systemGranted: false)
   }
 
-  /// Request screen recording permission by triggering the system prompt.
-  ///
-  /// Strategy (macOS 13+):
-  /// 1. Fast-path if already granted (`CGPreflightScreenCaptureAccess`).
-  /// 2. Try `SCShareableContent.current` — on macOS 13–14 this triggers the
-  ///    native system dialog that auto-adds the app to Screen Recording.
-  /// 3. If SCShareableContent throws (not-permitted), fall back to
-  ///    `CGRequestScreenCaptureAccess()` which opens System Settings on
-  ///    macOS 15+ so the user can manually toggle the app on.
-  func requestPermission() async -> Bool {
+  /// Request screen recording permission via the PermissionGuide panel + System Settings.
+  /// Deliberately never calls `SCShareableContent`/`CGRequestScreenCaptureAccess`, which
+  /// would show the system's own permission dialog first.
+  func requestPermission(explain: Bool = true) async -> Bool {
     AppIdentityManager.shared.refresh()
 
-    // Fast path: already granted by the system.
     if CGPreflightScreenCaptureAccess() {
       requiresRelaunchToActivate = false
       updatePermissionStatus(systemGranted: true)
       return hasPermission
     }
 
-    // Primary: ScreenCaptureKit triggers the native permission dialog (macOS 13-14)
-    // and auto-adds the app to the Screen Recording list.
-    do {
-      _ = try await SCShareableContent.current
-      // If we reach here, the system granted access.
-      requiresRelaunchToActivate = false
+    // Already toggled on disk but this process's audit token is stale.
+    if await probeScreenCapturePermission() {
+      requiresRelaunchToActivate = true
       updatePermissionStatus(systemGranted: true)
       return hasPermission
-    } catch {
-      // Check if user already granted permission on disk
-      if await probeScreenCapturePermission() {
-        requiresRelaunchToActivate = true
-        updatePermissionStatus(systemGranted: true)
-        return hasPermission
-      }
-
-      // Fallback: open Screen Recording settings with the guide panel.
-      openScreenRecordingPreferences()
-      await checkPermission()
-      return hasPermission
     }
+
+    openScreenRecordingPreferences(explain: explain)
+    await checkPermission()
+    return hasPermission
+  }
+
+  struct AccessNotGrantedError: Error {}
+
+  /// Guard for every ScreenCaptureKit enumeration: without access, ScreenCaptureKit shows
+  /// macOS's own prompt, so open the PermissionGuide instead and throw.
+  func requireAccessOrShowGuide() async throws {
+    if CGPreflightScreenCaptureAccess() { return }
+    if await probeScreenCapturePermission() { return }
+    openScreenRecordingPreferences()
+    throw AccessNotGrantedError()
   }
 
   /// Probe whether Screen Recording permission has been toggled ON in System Settings,
@@ -343,17 +336,26 @@ final class ScreenCaptureManager: ObservableObject {
   }
 
   /// Open Screen Recording settings with the PermissionGuide drag-to-grant panel.
-  func openScreenRecordingPreferences() {
+  func openScreenRecordingPreferences(explain: Bool = true) {
     // CGPreflightScreenCaptureAccess can stay stale in-process after a grant, so the
     // guide also polls checkPermission(), which falls back to the child-process probe.
     PermissionGuidePresenter.present(
       .screenRecording,
+      explain: explain,
       probe: { [weak self] in
         await self?.checkPermission()
         return self?.hasPermission ?? false
       },
-      onFinish: { [weak self] _ in
-        Task { await self?.checkPermission() }
+      onFinish: { [weak self] granted in
+        Task {
+          guard let self else { return }
+          await self.checkPermission()
+          // macOS only applies a new Screen Recording grant to a fresh process; onboarding
+          // relaunches on completion itself.
+          if granted, explain, self.requiresRelaunchToActivate {
+            try? await AppLanguageManager.shared.relaunchApplication()
+          }
+        }
       })
   }
 
@@ -1630,6 +1632,7 @@ final class ScreenCaptureManager: ObservableObject {
   /// Get list of available displays
   func getAvailableDisplays() async -> [SCDisplay] {
     do {
+      try await requireAccessOrShowGuide()
       let content = try await SCShareableContent.current
       return content.displays
     } catch {
@@ -2777,6 +2780,7 @@ final class ScreenCaptureManager: ObservableObject {
   }
 
   private func fetchShareableContent(includeDesktopWindows: Bool) async throws -> SCShareableContent {
+    try await requireAccessOrShowGuide()
     if includeDesktopWindows {
       return try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
     }

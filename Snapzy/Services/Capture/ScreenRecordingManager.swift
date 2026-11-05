@@ -2081,6 +2081,7 @@ final class ScreenRecordingManager: NSObject, ObservableObject {
   }
 
   private func loadShareableContentForCurrentFilters() async throws -> SCShareableContent {
+    try await ScreenCaptureManager.shared.requireAccessOrShowGuide()
     let requiresDesktopWindowEnumeration = excludeDesktopIconsFromCapture || excludeDesktopWidgetsFromCapture
     if requiresDesktopWindowEnumeration {
       // Finder/widget exclusion needs desktop windows in the shareable snapshot. Off-screen
