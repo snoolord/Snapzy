@@ -22,6 +22,8 @@ final class RecordingCoordinator: ObservableObject {
   private let captureManager = ScreenCaptureManager.shared
   private let recorder = ScreenRecordingManager.shared
   private var isStartingRecording = false
+  /// Set by Shift+Return; consumed when the recording stops.
+  private var opensEditorAfterRecording = false
   // Invalidated before Stop/Cancel/Restart suspends, even while the toolbar survives.
   private var recordingGeneration = UUID()
   private var localEscapeMonitor: Any?
@@ -210,6 +212,12 @@ final class RecordingCoordinator: ObservableObject {
       if self?.handlePreRecordKeyEvent(event) == true {
         return nil
       }
+      // Enter-to-start is local-only: the global monitor must ignore Return so
+      // pressing Enter in another app while the toolbar is open cannot start
+      // recording unexpectedly.
+      if self?.handleRecordStartKeyEvent(event) == true {
+        return nil
+      }
       return event
     }
 
@@ -261,6 +269,28 @@ final class RecordingCoordinator: ObservableObject {
     guard recorder.state == .idle, !isStartingRecording else { return false }
     guard toolbarWindow != nil else { return false }
     return CaptureOverlayShortcutSettings.matchesRecordingApplicationCaptureShortcut(event)
+  }
+
+  /// Return starts recording and Option+Return starts a GIF from the pre-record toolbar.
+  /// Only call from the local monitor: the toolbar must have focus, so stray
+  /// Enter presses in other apps can never trigger a recording.
+  @discardableResult
+  private func handleRecordStartKeyEvent(_ event: NSEvent) -> Bool {
+    guard recorder.state == .idle, !isStartingRecording else { return false }
+    guard toolbarWindow != nil else { return false }
+    guard let action = RecordingPreRecordKey.startAction(
+      keyCode: event.keyCode,
+      modifierFlags: event.modifierFlags
+    ) else { return false }
+    switch action {
+    case .video: toolbarWindow?.outputMode = .video
+    case .gif: toolbarWindow?.outputMode = .gif
+    case .studio:
+      toolbarWindow?.outputMode = .video
+      opensEditorAfterRecording = true
+    }
+    startRecording()
+    return true
   }
 
   private func toggleApplicationCaptureMode() {
@@ -322,6 +352,8 @@ final class RecordingCoordinator: ObservableObject {
     configureToolbarCallbacks(toolbar)
     applyToolbarConfiguration(configuration, to: toolbar)
     toolbar.captureMode = captureMode
+    // Non-activating key focus so Enter/Escape reach the local monitor while Snapzy stays inactive.
+    toolbar.makeKey()
     toolbarWindow = toolbar
 
     showRegionOverlay(for: rect, interactionEnabled: captureMode != .application)
@@ -979,6 +1011,7 @@ final class RecordingCoordinator: ObservableObject {
     recordingGeneration = UUID()
     // Capture output mode before cleanup closes the toolbar
     let outputMode = toolbarWindow?.state.outputMode ?? .video
+    let opensEditor = opensEditorAfterRecording && outputMode == .video
 
     Task {
       let url = await recorder.stopRecording()
@@ -1003,6 +1036,7 @@ final class RecordingCoordinator: ObservableObject {
         } else {
           // Video mode: normal post-capture flow
           await PostCaptureActionHandler.shared.handleVideoCapture(url: url)
+          if opensEditor { VideoEditorManager.shared.openEditorWithAutoZoom(for: url) }
         }
       }
     }
@@ -1167,6 +1201,7 @@ final class RecordingCoordinator: ObservableObject {
 
   private func cleanup() {
     recordingGeneration = UUID()
+    opensEditorAfterRecording = false
     DiagnosticLogger.shared.log(.debug, .recording, "Recording cleanup", context: [
       "regionOverlays": "\(regionOverlayWindows.count)",
       "hasToolbar": "\(toolbarWindow != nil)",

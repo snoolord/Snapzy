@@ -1077,6 +1077,9 @@ final class VideoEditorState: ObservableObject {
         "audioTracks": "\(audioTrackCount)",
         "audioTrackRoles": audioTrackRoles.map(\.id).joined(separator: ","),
       ])
+      if VideoEditorManager.shared.consumeAutoZoomRequest(for: sourceURL) {
+        addPlannedAutoZoomSegments()
+      }
       // Calculate initial file size estimate after metadata loads
       recalculateEstimatedFileSize()
     } catch {
@@ -2248,6 +2251,20 @@ final class VideoEditorState: ObservableObject {
     selectedZoomId = segment.id
     recordAction(.addZoom(segment: segment))
     return segment.id
+  }
+
+  /// Adds auto-mode zoom segments at recorded clicks. No-op without mouse
+  /// data or when zooms already exist.
+  func addPlannedAutoZoomSegments() {
+    guard hasMouseTrackingData, zoomSegments.isEmpty,
+          let clickTimes = recordingMetadata?.clickTimes else { return }
+    let videoDuration = CMTimeGetSeconds(timelineDuration)
+    for plan in VideoEditorAutoZoomPlanner.plan(clickTimes: clickTimes, videoDuration: videoDuration) {
+      let segment = ZoomSegment(startTime: plan.startTime, duration: plan.duration, zoomType: .auto)
+        .clamped(to: videoDuration)
+      zoomSegments.append(segment)
+      recordAction(.addZoom(segment: segment))
+    }
   }
 
   /// Remove a zoom segment by ID

@@ -56,6 +56,8 @@ nonisolated struct RecordingMetadata: Codable, Equatable {
   var captureSize: CGSize
   var samplesPerSecond: Int
   var mouseSamples: [RecordedMouseSample]
+  /// Left-click times in seconds on the recording clock; empty for older recordings.
+  var clickTimes: [TimeInterval]
   var audioSourceURL: URL?
   var audioSourceTrackRoles: [RecordingAudioSourceTrackRole]
   var audioSourceTracks: [RecordingAudioSourceTrack]
@@ -66,6 +68,7 @@ nonisolated struct RecordingMetadata: Codable, Equatable {
     captureSize: CGSize,
     samplesPerSecond: Int,
     mouseSamples: [RecordedMouseSample],
+    clickTimes: [TimeInterval] = [],
     audioSourceURL: URL? = nil,
     audioSourceTrackRoles: [RecordingAudioSourceTrackRole] = [],
     audioSourceTracks: [RecordingAudioSourceTrack] = []
@@ -75,6 +78,7 @@ nonisolated struct RecordingMetadata: Codable, Equatable {
     self.captureSize = captureSize
     self.samplesPerSecond = samplesPerSecond
     self.mouseSamples = mouseSamples
+    self.clickTimes = clickTimes
     self.audioSourceURL = audioSourceURL
     self.audioSourceTrackRoles = audioSourceTrackRoles
     self.audioSourceTracks = audioSourceTracks
@@ -86,6 +90,7 @@ nonisolated struct RecordingMetadata: Codable, Equatable {
     case captureSize
     case samplesPerSecond
     case mouseSamples
+    case clickTimes
     case audioSourceURL
     case audioSourceTrackRoles
     case audioSourceTracks
@@ -108,6 +113,7 @@ nonisolated struct RecordingMetadata: Codable, Equatable {
     captureSize = try container.decode(CGSize.self, forKey: .captureSize)
     samplesPerSecond = try container.decode(Int.self, forKey: .samplesPerSecond)
     mouseSamples = try container.decode([RecordedMouseSample].self, forKey: .mouseSamples)
+    clickTimes = try container.decodeIfPresent([TimeInterval].self, forKey: .clickTimes) ?? []
     audioSourceURL = try container.decodeIfPresent(URL.self, forKey: .audioSourceURL)
     audioSourceTrackRoles = try container.decodeIfPresent(
       [RecordingAudioSourceTrackRole].self,
@@ -126,6 +132,9 @@ nonisolated struct RecordingMetadata: Codable, Equatable {
     try container.encode(captureSize, forKey: .captureSize)
     try container.encode(samplesPerSecond, forKey: .samplesPerSecond)
     try container.encode(mouseSamples, forKey: .mouseSamples)
+    if !clickTimes.isEmpty {
+      try container.encode(clickTimes, forKey: .clickTimes)
+    }
     try container.encodeIfPresent(audioSourceURL, forKey: .audioSourceURL)
     if !audioSourceTrackRoles.isEmpty {
       try container.encode(audioSourceTrackRoles, forKey: .audioSourceTrackRoles)
@@ -707,6 +716,7 @@ private extension RecordingMetadata {
       captureSize: captureSize,
       samplesPerSecond: samplesPerSecond,
       mouseSamples: normalizedSamples,
+      clickTimes: clickTimes,
       audioSourceURL: audioSourceURL,
       audioSourceTrackRoles: audioSourceTrackRoles,
       audioSourceTracks: audioSourceTracks

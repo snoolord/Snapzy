@@ -210,7 +210,7 @@ final class RecordingToolbarState: ObservableObject {
 // MARK: - Toolbar Window
 
 @MainActor
-final class RecordingToolbarWindow: NSWindow {
+final class RecordingToolbarWindow: NSPanel {
   private var anchorRect: CGRect
   private var mode: RecordingToolbarMode = .preRecord
   private var hostingView: NSHostingView<AnyView>?
@@ -312,7 +312,7 @@ final class RecordingToolbarWindow: NSWindow {
 
     super.init(
       contentRect: .zero,
-      styleMask: [.borderless],
+      styleMask: [.borderless, .nonactivatingPanel],
       backing: .buffered,
       defer: false
     )
@@ -341,6 +341,8 @@ final class RecordingToolbarWindow: NSWindow {
     collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
     hasShadow = true
     isReleasedWhenClosed = false
+    // NSPanel defaults would hide the bar whenever Snapzy is inactive, which is always.
+    hidesOnDeactivate = false
 
     // Apply theme appearance at window level (mirrors AnnotateWindow.applyTheme)
     appearance = ThemeManager.shared.nsAppearance
