@@ -272,10 +272,8 @@ final class ScreenCaptureManager: ObservableObject {
         return hasPermission
       }
 
-      // Fallback: CGRequestScreenCaptureAccess opens System Settings on macOS 15+.
-      PermissionGuide.present(.screenRecording) { [weak self] _ in
-        Task { await self?.checkPermission() }
-      }
+      // Fallback: open Screen Recording settings with the guide panel.
+      openScreenRecordingPreferences()
       await checkPermission()
       return hasPermission
     }
@@ -344,11 +342,11 @@ final class ScreenCaptureManager: ObservableObject {
     }
   }
 
-  /// Open System Preferences to Screen Recording section
+  /// Open Screen Recording settings with the PermissionGuide drag-to-grant panel.
   func openScreenRecordingPreferences() {
-    let url = URL(
-      string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!
-    NSWorkspace.shared.open(url)
+    PermissionGuide.present(.screenRecording) { [weak self] _ in
+      Task { await self?.checkPermission() }
+    }
   }
 
   /// Start loading shareable content before the user finishes a selection so
