@@ -1312,6 +1312,7 @@ final class ScreenRecordingManager: NSObject, ObservableObject {
             captureSize: recordingRect.size,
             samplesPerSecond: mouseTracker?.samplesPerSecond ?? fps,
             mouseSamples: mouseSamples,
+            clickTimes: mouseTracker?.clickTimes ?? [],
             audioSourceURL: editorAudioSourceURL,
             audioSourceTrackRoles: audioSourceTrackRoles,
             audioSourceTracks: audioSourceTracks

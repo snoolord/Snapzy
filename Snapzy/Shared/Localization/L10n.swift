@@ -7983,6 +7983,16 @@ nonisolated enum L10n {
       defaultValue: "Opens output format selection",
       comment: "Accessibility hint for output mode selector"
     )
+    static let shortcutsTitle = string(
+      "recording-toolbar.shortcuts-title",
+      defaultValue: "Keyboard shortcuts",
+      comment: "Heading above the start-recording key hints in the output format popover"
+    )
+    static let shortcutRecordThenEdit = string(
+      "recording-toolbar.shortcut-record-then-edit",
+      defaultValue: "Record, then edit",
+      comment: "Key hint: Shift+Return records a video and opens the editor when it stops"
+    )
     static let record = string(
       "recording-toolbar.record",
       defaultValue: "Record",

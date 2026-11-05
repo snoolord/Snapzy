@@ -30,6 +30,9 @@ final class RecordingMouseTracker {
   private var timer: Timer?
   private var globalMouseMonitor: Any?
   private var samples: [RecordedMouseSample] = []
+  private var clickMonitor: Any?
+  /// Left-click times (recording clock, pauses excluded) inside the capture area.
+  private(set) var clickTimes: [TimeInterval] = []
   private var startUptime: TimeInterval?
   private var pausedAtUptime: TimeInterval?
   private var accumulatedPausedDuration: TimeInterval = 0
@@ -73,6 +76,7 @@ final class RecordingMouseTracker {
     startUptime = uptimeProvider()
     appendCurrentSample(force: true, location: nil)
     installGlobalMouseMonitor()
+    installClickMonitor()
 
     let timer = Timer(timeInterval: sampleInterval, repeats: true) { [weak self] _ in
       Task { @MainActor [weak self] in
@@ -105,6 +109,7 @@ final class RecordingMouseTracker {
       mouseMonitorRemover(globalMouseMonitor)
       self.globalMouseMonitor = nil
     }
+    removeClickMonitor()
     pausedAtUptime = nil
     diagnostics = buildDiagnostics(from: samples)
     return samples
@@ -117,7 +122,9 @@ final class RecordingMouseTracker {
       mouseMonitorRemover(globalMouseMonitor)
       self.globalMouseMonitor = nil
     }
+    removeClickMonitor()
     samples.removeAll(keepingCapacity: true)
+    clickTimes.removeAll(keepingCapacity: true)
     startUptime = nil
     pausedAtUptime = nil
     accumulatedPausedDuration = 0
@@ -161,6 +168,21 @@ final class RecordingMouseTracker {
     }
 
     samples.append(sample)
+  }
+
+  private func installClickMonitor() {
+    clickMonitor = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] _ in
+      Task { @MainActor [weak self] in
+        guard let self, pausedAtUptime == nil, recordingRect.contains(mouseLocationProvider()),
+              let elapsed = currentElapsedTime() else { return }
+        clickTimes.append(elapsed)
+      }
+    }
+  }
+
+  private func removeClickMonitor() {
+    if let clickMonitor { NSEvent.removeMonitor(clickMonitor) }
+    clickMonitor = nil
   }
 
   private func installGlobalMouseMonitor() {

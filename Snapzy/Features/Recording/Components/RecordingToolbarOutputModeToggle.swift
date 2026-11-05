@@ -124,9 +124,42 @@ private struct OutputModePopoverContent: View {
           UserDefaults.standard.set(mode.rawValue, forKey: PreferencesKeys.recordingOutputMode)
         }
       }
+
+      Divider().padding(.vertical, 2)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(L10n.RecordingToolbar.shortcutsTitle)
+          .font(.system(size: 10, weight: .semibold))
+          .foregroundColor(.secondary)
+        ShortcutHintRow(keys: "↩", label: RecordingOutputMode.video.displayName)
+        ShortcutHintRow(keys: "⌥↩", label: RecordingOutputMode.gif.displayName)
+        ShortcutHintRow(keys: "⇧↩", label: L10n.RecordingToolbar.shortcutRecordThenEdit)
+      }
+      .padding(.horizontal, 8)
+      .padding(.bottom, 2)
     }
     .padding(8)
-    .frame(width: 160)
+    .frame(width: 200)
+  }
+}
+
+// MARK: - Shortcut Hint Row
+
+private struct ShortcutHintRow: View {
+  let keys: String
+  let label: String
+
+  var body: some View {
+    HStack(spacing: 8) {
+      Text(keys)
+        .font(.system(size: 11, weight: .medium, design: .rounded))
+        .frame(minWidth: 28)
+        .padding(.vertical, 1)
+        .background(RoundedRectangle(cornerRadius: 4, style: .continuous).fill(.primary.opacity(0.1)))
+      Text(label)
+        .font(.system(size: 11))
+        .foregroundColor(.primary.opacity(0.85))
+    }
   }
 }
 

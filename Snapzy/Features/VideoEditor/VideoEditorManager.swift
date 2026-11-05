@@ -22,7 +22,20 @@ final class VideoEditorManager {
   private var sessionCache: [UUID: VideoEditorSessionData] = [:]
   private var urlSessionCache: [URL: VideoEditorSessionData] = [:]
 
+  private var autoZoomRequests: Set<URL> = []
+
   private init() {}
+
+  /// Whether the editor loading `url` was opened with auto-zoom requested. One-shot.
+  func consumeAutoZoomRequest(for url: URL) -> Bool {
+    autoZoomRequests.remove(url.standardizedFileURL) != nil
+  }
+
+  /// Opens `url` in the editor and adds auto-zoom segments once it has loaded.
+  func openEditorWithAutoZoom(for url: URL) {
+    autoZoomRequests.insert(url.standardizedFileURL)
+    openEditor(for: url)
+  }
 
   // MARK: - Activation Policy Management
 
